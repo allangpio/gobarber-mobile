@@ -1,10 +1,9 @@
 import styled, { css } from 'styled-components/native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
-import { NavigationContainerProps } from '@react-navigation/native';
 
-interface CotainerProps {
+interface ContainerProps {
   isFocused: boolean;
-  isErrored: BooleanConstructor;
+  isErrored: boolean;
 }
 
 export const Container = styled.View<ContainerProps>`
