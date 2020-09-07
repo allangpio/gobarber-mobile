@@ -3,6 +3,8 @@ import React, {
   useEffect,
   useImperativeHandle,
   forwardRef,
+  useState,
+  useCallback,
 } from 'react';
 import { TextInputProps } from 'react-native';
 import { useField } from '@unform/core';
@@ -29,7 +31,20 @@ const Input: React.RefForwardingComponent<InputRef, InputProps> = (
   const inputElementRef = useRef<any>(null);
 
   const { registerField, defaultValue = '', fieldName, error } = useField(name);
-  const inpuValueRef = useRef<InputValueReference>({ value: defaultValue });
+  const inputValueRef = useRef<InputValueReference>({ value: defaultValue });
+
+  const [isFocused, setIsFocused] = useState(false);
+  const [isFilled, setIsFilled] = useState(false);
+
+  const handleInputFocus = useCallback(() => {
+    setIsFocused(true);
+  }, []);
+
+  const handleInputBlur = useCallback(() => {
+    setIsFocused(false);
+
+    setIsFilled(!!inputValueRef.current.value);
+  }, []);
 
   useImperativeHandle(ref, () => ({
     focus() {
@@ -39,29 +54,35 @@ const Input: React.RefForwardingComponent<InputRef, InputProps> = (
   useEffect(() => {
     registerField<string>({
       name: fieldName,
-      ref: inpuValueRef.current,
+      ref: inputValueRef.current,
       path: 'value',
       setValue(ref: any, value) {
-        inpuValueRef.current.value = value;
+        inputValueRef.current.value = value;
         inputElementRef.current.setNativeProps({ text: value });
       },
       clearValue() {
-        inpuValueRef.current.value = '';
+        inputValueRef.current.value = '';
         inputElementRef.current.clear();
       },
     });
   }, [fieldName, registerField]);
 
   return (
-    <Container>
-      <Icon name={icon} size={20} color="#666360" />
+    <Container isFocused={isFocused} isErrored={!!error}>
+      <Icon
+        name={icon}
+        size={20}
+        color={isFocused || isFilled ? '#ff9000' : '#666360'}
+      />
       <TextInput
         ref={inputElementRef}
         keyboardAppearance="dark"
         placeholderTextColor="#666360"
         defaultValue={defaultValue}
+        onFocus={handleInputFocus}
+        onBlur={handleInputBlur}
         onChangeText={value => {
-          inpuValueRef.current.value = value;
+          inputValueRef.current.value = value;
         }}
         {...rest}
       />
